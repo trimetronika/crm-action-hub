@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { execFile } from 'child_process';
 import path from 'path';
 import crypto from 'crypto';
+import { decryptString } from '@/lib/encryption';
 
 async function checkAuthAndGetCreds() {
     const cookieStore = await cookies();
@@ -13,7 +14,8 @@ async function checkAuthAndGetCreds() {
     try {
         const secret = new TextEncoder().encode(process.env.SESSION_SECRET || 'fallback-secret-key-change-in-production');
         const { payload } = await jwtVerify(token, secret);
-        return { username: payload.username as string, password: payload.password as string };
+        const password = decryptString(payload.encryptedPassword as string);
+        return { username: payload.username as string, password };
     } catch(e) {
         return null;
     }

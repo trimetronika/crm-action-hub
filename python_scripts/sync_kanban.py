@@ -31,7 +31,7 @@ class AbsenkuScraper:
     def _solve_captcha(self):
         captcha_url = "https://prof-dev.absenku.com/web/login/captcha"
         try:
-            r = self.session.get(captcha_url, verify=False, timeout=10)
+            r = self.session.get(captcha_url, timeout=10)
             with open(self.raw_image_path, "wb") as f:
                 f.write(r.content)
             
@@ -60,7 +60,7 @@ class AbsenkuScraper:
 
     def login(self, max_attempts=5):
         login_url = "https://prof-dev.absenku.com/web/login"
-        resp = self.session.get(login_url, verify=False)
+        resp = self.session.get(login_url)
         soup = BeautifulSoup(resp.text, 'html.parser')
         csrf_meta = soup.find('meta', {'name': 'csrf-token'})
         self.csrf_token = csrf_meta['content'] if csrf_meta else ""
@@ -78,7 +78,7 @@ class AbsenkuScraper:
             }
             post_data = {'username': self.username, 'password': self.password, 'captcha': captcha_val}
             
-            login_resp = self.session.post("https://prof-dev.absenku.com/web/login/proses", data=post_data, headers=post_headers, verify=False, allow_redirects=True)
+            login_resp = self.session.post("https://prof-dev.absenku.com/web/login/proses", data=post_data, headers=post_headers, allow_redirects=True)
             
             if "dashboard" in login_resp.url or ("web" in login_resp.url and "login" not in login_resp.url):
                 return True
@@ -88,7 +88,7 @@ class AbsenkuScraper:
                 if res_json.get('success'): return True
                 if 'csrf_token' in res_json: self.csrf_token = res_json['csrf_token']
             except:
-                test_dash = self.session.get("https://prof-dev.absenku.com/web", verify=False)
+                test_dash = self.session.get("https://prof-dev.absenku.com/web")
                 if "Dashboard" in test_dash.text: return True
                 
         return False
@@ -115,7 +115,7 @@ class AbsenkuScraper:
         all_data = []
         for periode in periods:
             url = f"https://prof-dev.absenku.com/web/sales-activity/kanban-board/data/{periode}/all/all/all"
-            resp = self.session.get(url, verify=False)
+            resp = self.session.get(url)
             soup = BeautifulSoup(resp.text, 'html.parser')
             
             spans = [span for span in soup.find_all('span') if span.get('style') and 'color:#FFFFFF' in span.get('style')]

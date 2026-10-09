@@ -46,6 +46,7 @@ model Lead {
   catatan        String?
   email          String?
   updateTerakhir String?
+  nextFollowUpDate DateTime?
   
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt

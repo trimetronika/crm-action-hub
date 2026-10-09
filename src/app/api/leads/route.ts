@@ -57,7 +57,7 @@ export async function PUT(req: Request) {
 
   try {
     const body = await req.json();
-    const { id, email, catatan, chatHistory } = body;
+    const { id, email, catatan, chatHistory, nextFollowUpDate } = body;
     
     // First, verify the lead belongs to this user
     const existingLead = await prisma.lead.findFirst({ where: { id, username } });
@@ -68,6 +68,7 @@ export async function PUT(req: Request) {
     const updateData: any = { lastSync: new Date() };
     if (email !== undefined) updateData.email = email;
     if (catatan !== undefined) updateData.catatan = catatan;
+    if (nextFollowUpDate !== undefined) updateData.nextFollowUpDate = nextFollowUpDate ? new Date(nextFollowUpDate) : null;
 
     let updatedLead;
     

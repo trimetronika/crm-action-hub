@@ -126,10 +126,10 @@ export default function Dashboard() {
         setIsCommitting(true);
         const loadingToast = toast.loading("Menyimpan data...");
         try {
-            const res = await fetch('/api/sync/run', {
-                method: 'PUT',
+            const res = await fetch('/api/import/commit', {
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ previewData })
+                body: JSON.stringify(previewData) // previewData is the payload itself (newRows, updateRows, missingIds)
             });
             const data = await res.json();
             if (data.success) {
@@ -212,14 +212,15 @@ export default function Dashboard() {
         }));
         
         if (leadToUpdate && leadToUpdate.id) {
-            if (field === 'Email' || field === 'Catatan') {
+            if (field === 'Email' || field === 'Catatan' || field === 'NextFollowUpDate') {
                 fetch('/api/leads', {
-                    method: 'PATCH',
+                    method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         id: leadToUpdate.id, 
                         email: field === 'Email' ? value : leadToUpdate.Email, 
-                        catatan: field === 'Catatan' ? value : leadToUpdate.Catatan 
+                        catatan: field === 'Catatan' ? value : leadToUpdate.Catatan,
+                        nextFollowUpDate: field === 'NextFollowUpDate' ? value : leadToUpdate.NextFollowUpDate
                     })
                 }).catch(console.error);
             }

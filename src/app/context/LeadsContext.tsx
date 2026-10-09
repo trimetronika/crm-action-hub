@@ -33,6 +33,7 @@ export function LeadsProvider({ children }: { children: React.ReactNode }) {
                     'Email': lead.email,
                     'Catatan': lead.catatan,
                     'Last Updated': lead.updateTerakhir,
+                    'NextFollowUpDate': lead.nextFollowUpDate,
                 }));
                 setLeads(mappedLeads);
             }

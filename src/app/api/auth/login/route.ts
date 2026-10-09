@@ -3,8 +3,18 @@ import { execFile } from 'child_process';
 import path from 'path';
 import { SignJWT } from 'jose';
 import { cookies } from 'next/headers';
+import { encryptString } from '@/lib/encryption';
 
-const JWT_SECRET = new TextEncoder().encode(process.env.SESSION_SECRET || 'fallback-secret-key-change-in-production');
+const getJwtSecret = () => {
+  const secret = process.env.SESSION_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('FATAL: SESSION_SECRET is not defined in production environment.');
+    }
+    return new TextEncoder().encode('fallback-secret-key-change-in-production');
+  }
+  return new TextEncoder().encode(secret);
+};
 
 export async function POST(req: Request) {
   try {
@@ -28,11 +38,12 @@ export async function POST(req: Request) {
           const result = JSON.parse(jsonStr);
 
           if (result.success) {
-            // Create JWT Token payload
-            const token = await new SignJWT({ username, password })
+            // Create JWT Token payload with ENCRYPTED password
+            const encryptedPassword = encryptString(password);
+            const token = await new SignJWT({ username, encryptedPassword })
               .setProtectedHeader({ alg: 'HS256' })
               .setExpirationTime('24h')
-              .sign(JWT_SECRET);
+              .sign(getJwtSecret());
 
             // Set HTTP-only cookie
             const cookieStore = await cookies();
