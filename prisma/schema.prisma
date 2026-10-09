@@ -1,0 +1,116 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  username  String   @id
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  leads     Lead[]
+  syncJobs  SyncJob[]
+  settings  Settings?
+  memories  AiMemory[]
+}
+
+model Settings {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  user         User     @relation(fields: [username], references: [username], onDelete: Cascade)
+  geminiKey    String?
+  aiModel      String?  @default("gemini-3.6-flash")
+  templatePath String?
+  metaAiHistory String? // Stores JSON string of META_AI chat history
+  updatedAt    DateTime @updatedAt
+}
+
+model Lead {
+  id             String    @id @default(uuid())
+  username       String
+  user           User      @relation(fields: [username], references: [username], onDelete: Cascade)
+  sourceId       String    // Composite hash for Kanban identity
+  
+  namaPerusahaan String
+  pic            String
+  telepon        String
+  layanan        String
+  nilaiDeal      Float     @default(0) // Normalized monetary value
+  tahapan        String
+  bulan          String
+  
+  catatan        String?
+  email          String?
+  updateTerakhir String?
+  
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime? // Soft-delete marker
+  lastSync       DateTime  @default(now())
+
+  chatActivities ChatActivity[]
+
+  @@unique([username, sourceId]) // Prevents duplicates per user
+}
+
+model ChatActivity {
+  id        String   @id @default(uuid())
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  role      String   // 'user' | 'model'
+  text      String
+  timestamp DateTime @default(now())
+  isSent    Boolean  @default(false)
+  status    String   @default("DRAFT") // 'DRAFT' | 'COPIED' | 'OPENED_WA' | 'SENT'
+}
+
+model SyncJob {
+  id              String   @id @default(uuid())
+  username        String
+  user            User     @relation(fields: [username], references: [username], onDelete: Cascade)
+  status          String   // 'REQUESTED' | 'RUNNING' | 'SUCCESS' | 'PARTIAL_SUCCESS' | 'FAILED' | 'CANCELLED'
+  
+  // Counts
+  recordsAffected Int      @default(0) // Legacy or total processed
+  importedCount   Int      @default(0)
+  updatedCount    Int      @default(0)
+  skippedCount    Int      @default(0)
+  failedCount     Int      @default(0)
+  
+  // Metadata
+  syncPeriodStart String?
+  syncPeriodEnd   String?
+  errorMessage    String?
+  message         String?
+  
+  timestamp       DateTime @default(now()) // Start time
+  completedAt     DateTime? // End time
+}
+
+model AiMemory {
+  id        String   @id @default(uuid())
+  username  String
+  user      User     @relation(fields: [username], references: [username], onDelete: Cascade)
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AuditLog {
+  id            String   @id @default(uuid())
+  username      String   @default("system")
+  action        String   // e.g., 'SYNC_STARTED', 'IMPORT_COMPLETED', 'AUTH_DENIAL'
+  resource      String?  // e.g., 'Lead', 'Settings', 'SyncJob'
+  resourceId    String?
+  details       String?  // JSON stringified for flexible payloads
+  status        String   // 'SUCCESS' | 'FAILURE'
+  correlationId String?
+  timestamp     DateTime @default(now())
+  
+  @@index([action])
+  @@index([timestamp])
+}

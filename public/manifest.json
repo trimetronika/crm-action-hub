@@ -1,0 +1,17 @@
+{
+  "name": "CRM Absenku",
+  "short_name": "Absenku",
+  "description": "CRM & Follow Up Assistant for Absenku",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/globe.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
